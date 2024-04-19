@@ -39,7 +39,8 @@ class Utils {
         uniform vec3 theta;
         uniform mat4 uViewMatrix; // Matriz da câmera
         uniform mat4 uProjectionMatrix; // Matriz de projeção
-    
+        in vec2 texCoords;
+        out vec2 textureCoords;
     void main(){
         vec3 angles = radians(theta);
         vec3 c = cos(angles);
@@ -59,18 +60,24 @@ class Utils {
                         s.z, c.z, 0.0, 0.0,
                         0.0, 0.0, 1.0, 0.0,
                         0.0, 0.0, 0.0, 1.0);
-    
-        gl_Position = uProjectionMatrix * uViewMatrix * rz * ry * rx *
-        vec4(aPosition, 1.0);
+        gl_Position = uProjectionMatrix * uViewMatrix * rz * ry * rx * vec4(aPosition, 1.0);
+        
         vColor = vec4(aColor, 1.0);
+
+        textureCoords = texCoords;
     }
     `,
             fragmentShader = `#version 300 es
 precision highp float;
-in vec4 vColor;
+//in vec4 vColor;
+
+in vec2 textureCoords;
+uniform sampler2D uSampler;
+
 out vec4 fColor;
 void main(){
-   fColor = vColor;
+   // fColor = vColor;
+   fColor = texture(uSampler, textureCoords);
 }`} = {}) {
         var vertShdr = this.gl.createShader(this.gl.VERTEX_SHADER);
         var fragShdr = this.gl.createShader(this.gl.FRAGMENT_SHADER);

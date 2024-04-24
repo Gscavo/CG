@@ -43,14 +43,6 @@ function makeFace(v1, v2, v3, v4) {
     })
 }
 
-
-/*makeFace(1, 0, 3, 2)
-makeFace(2, 3, 4, 6)
-makeFace(3, 0, 4, 7)
-makeFace(4, 0, 1, 5)
-makeFace(5, 1, 2, 6)
-makeFace(6, 7, 4, 5)*/
-
 makeFace(0, 1, 2, 3)
 makeFace(2, 6, 7, 3)
 makeFace(3, 7, 4, 0)
@@ -102,16 +94,21 @@ utils.linkUniformMatrix({
 var viewMatrixFront = mat4.create();
 
 mat4.lookAt(viewMatrixFront, [0, 0, 5], [0, 0, 0], [0, 1, 0]);
+
 var viewMatrixTop = mat4.create();
 mat4.lookAt(viewMatrixTop, [0, 5, 0], [0, 0, 0], [0, 0, -1]);
+
 var viewMatrixSide = mat4.create();
-mat4.lookAt(viewMatrixSide,[-5, 0, 0],[0, 0, 0],[0, 1, 0]);
+mat4.lookAt(viewMatrixSide, [-5, 0, 0], [0, 0, 0], [0, 1, 0]);
+
 var viewMatrixFrontSide = mat4.create();
-mat4.lookAt(viewMatrixFrontSide,[-5, 0, 5],[0, 0, 0],[0, 1, 0]);
+mat4.lookAt(viewMatrixFrontSide, [-5, 0, 5], [0, 0, 0], [0, 1, 0]);
+
 var viewMatrixIsometric = mat4.create();
-mat4.lookAt(viewMatrixIsometric,[-5, 5, 5], [0, 0, 0],[0, 1, 0]);
+mat4.lookAt(viewMatrixIsometric, [-5, 5, 5], [0, 0, 0], [0, 1, 0]);
+
 var viewMatrixIsometric2 = mat4.create();
-mat4.lookAt(viewMatrixIsometric2,[5, -5, 5], [0, 0, 0],[0, 1, 0]);
+mat4.lookAt(viewMatrixIsometric2, [5, -5, 5], [0, 0, 0], [0, 1, 0]);
 
 function render() {
 
@@ -122,25 +119,23 @@ function render() {
 
     utils.linkUniformVariable({ shaderName: "theta", value: theta, kind: "3fv" });
 
-    //utils.drawElements({ method: "TRIANGLES" })
+    utils.linkUniformMatrix({ shaderName: "uViewMatrix", value: viewMatrixFront, kind: "4fv" });
+    utils.drawScene({ method: "TRIANGLES", viewport: { x: 0, y: sceneSize, width: sceneSize, height: sceneSize } });
 
-    utils.linkUniformMatrix({shaderName : "uViewMatrix",value : viewMatrixFront, kind : "4fv"});
+    utils.linkUniformMatrix({ shaderName: "uViewMatrix", value: viewMatrixTop, kind: "4fv" });
+    utils.drawScene({ method: "TRIANGLES", viewport: { x: sceneSize, y: sceneSize, width: sceneSize, height: sceneSize } });
+    
+    utils.linkUniformMatrix({ shaderName: "uViewMatrix", value: viewMatrixSide, kind: "4fv" });
+    utils.drawScene({ method: "TRIANGLES", viewport: { x: sceneSize * 2, y: sceneSize, width: sceneSize, height: sceneSize } });
+    
+    utils.linkUniformMatrix({ shaderName: "uViewMatrix", value: viewMatrixFrontSide, kind: "4fv" });
+    utils.drawScene({ method: "TRIANGLES", viewport: { x: 0, y: 0, width: sceneSize, height: sceneSize } });
 
-    utils.drawScene({method : "TRIANGLES", viewport:{x:0, y:sceneSize, width:sceneSize, height:sceneSize}});
-
-    utils.linkUniformMatrix({shaderName : "uViewMatrix", value : viewMatrixTop, kind : "4fv"});
-
-    utils.drawScene({method : "TRIANGLES", viewport:{x:sceneSize, y:sceneSize, width:sceneSize, height:sceneSize}});
-
-    utils.linkUniformMatrix({shaderName : "uViewMatrix", value : viewMatrixSide, kind : "4fv"});
-
-    utils.linkUniformMatrix({shaderName : "uViewMatrix", value : viewMatrixFrontSide, kind : "4fv"});
-
-    utils.drawScene({method : "TRIANGLES", viewport:{x:0, y:0, width:sceneSize, height:sceneSize}});
-
-    utils.linkUniformMatrix({shaderName : "uViewMatrix", value : viewMatrixIsometric, kind : "4fv"});
-
-    utils.drawScene({method : "TRIANGLES", viewport:{x:sceneSize, y:0, width:sceneSize, height:sceneSize}});
+    utils.linkUniformMatrix({ shaderName: "uViewMatrix", value: viewMatrixIsometric, kind: "4fv" });
+    utils.drawScene({ method: "TRIANGLES", viewport: { x: sceneSize, y: 0, width: sceneSize, height: sceneSize } });
+    
+    utils.linkUniformMatrix({ shaderName: "uViewMatrix", value: viewMatrixIsometric2, kind: "4fv" });
+    utils.drawScene({ method: "TRIANGLES", viewport: { x: sceneSize * 2, y: 0, width: sceneSize, height: sceneSize } });
 
     window.setTimeout(render, speed);
 }

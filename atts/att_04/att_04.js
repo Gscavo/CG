@@ -1,5 +1,5 @@
 var sceneSize = 300
-let utils = new Utils({ width: sceneSize * 3, height: sceneSize * 2 });
+let utils = new Utils({ width: sceneSize * 3, height: sceneSize * 2, a: 0.0});
 
 let vertices = [];
 let colors = [];

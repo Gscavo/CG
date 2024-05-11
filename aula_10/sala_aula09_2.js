@@ -142,6 +142,8 @@ uniform vec3 theta;
 // ToDo: receba os novos uniformes uAmbientLight, uLightColor e uLightDirection.
 // Já receb uAmbientLight para você
 uniform vec3 uAmbientLight;
+uniform vec3 uLightColor;
+uniform vec3 uLightDirection;
 
 void main(){
    // Computando seno e cosseno para cada 
@@ -171,16 +173,16 @@ void main(){
    gl_Position = modelMatrix * vec4(aPosition, 1.0);
 
    // ToDo: agora a parte da iluminação, descomente o código a seguir
-   //vec3 transformedNormal = mat3(modelMatrix) * aNormal;
-   //vec3 normal = normalize(transformedNormal);
-   //float diff = max(dot(normal, -normalize(uLightDirection)), 0.0);
-   //vec3 diffuse = uLightColor * diff;
-   //vec3 ambient = uAmbientLight;
-   //vec3 resultColor = ambient + diffuse;
+   vec3 transformedNormal = mat3(modelMatrix) * aNormal;
+   vec3 normal = normalize(transformedNormal);
+   float diff = max(dot(normal, -normalize(uLightDirection)), 0.0);
+   vec3 diffuse = uLightColor * diff;
+   vec3 ambient = uAmbientLight;
+   vec3 resultColor = ambient + diffuse;
 
 
    // ToDo: No código a seguir, faça com que a saída vColor sera resultColor * aColor
-   vColor = vec4(uAmbientLight * aColor, 1.0);   
+   vColor = vec4(resultColor * aColor, 1.0);   
    
 }`,
     fragmentShader: `#version 300 es
@@ -224,7 +226,7 @@ var rotation_y = 4.0;
 var rotation_z = 5.0;
 
 // Velocidade da animação
-var speed = 100;
+var speed = 50;
 
 /***************************************************
 Agora vamos tratar da luz
@@ -236,7 +238,12 @@ Agora vamos tratar da luz
 // Em uLightPosition, varie a posição da luz para ver as diferenças
 
 var uAmbientLight = [0.2, 0.2, 0.2]; // Luz ambiente fraca
-
+var uLightColor = [1, 1, 1];
+var uLightDirection = [
+    1, // Horizontal: < -1 | > 1
+    1, // Vertical: V -1 | ^ 1
+    .2  // Profundidade: -1 fundo | 1 Frente
+];
 
 // ToDo: receba um vetor chamado vec e normalize o vetor.
 // Precisaremos tratar a direção da luz para que esteja normalizada
@@ -254,11 +261,12 @@ function normalizeVector(vec) {
 }
 // ToDo: após declarar uLightDirection como um vetor de três elementos.
 // Descomente a linha a seguir para normalizar
-// normalizeVector(uLightDirection);
-
+normalizeVector(uLightDirection);
 
 // ToDo: Agora mande as variáveis para a GPU como uniforms. Já envie o uAmbientLight para você
 utils.linkUniformVariable({ shaderName: "uAmbientLight", value: uAmbientLight, kind: "3fv" });
+utils.linkUniformVariable({ shaderName: "uLightColor", value: uLightColor, kind: "3fv" });
+utils.linkUniformVariable({ shaderName: "uLightDirection", value: uLightDirection, kind: "3fv" });
 
 
 function render() {

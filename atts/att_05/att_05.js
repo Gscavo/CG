@@ -1,5 +1,16 @@
 var sceneSize = 200
-let utils = new Utils({ width: sceneSize * 3, height: sceneSize * 3 });
+let utils = new Utils({ width: sceneSize * 4, height: sceneSize * 3, a: .2});
+
+let rotationCtrl = new Controls("rotation", "Horário", "Anti-Horário")
+let scaleCtrl = new Controls("scale", "Aumentando", "Diminuindo", { increment: .01 })
+let translationCtrl = new Controls("translation", "Pra Frente", "Pra Trás", { increment: .01 })
+let speedSlider = window.document.querySelector("#spd-slider")
+let speedValueEl = window.document.querySelector("#speed-value")
+
+speedSlider.addEventListener("input", () => {
+    speed = -speedSlider.value
+    speedValueEl.innerText = -speedSlider.value
+})
 
 let vertices = [];
 let colors = [];
@@ -9,10 +20,16 @@ let squareVertices = [
     [-.5, .5],      // 1
     [.5, -.5],      // 2
     [.5, .5],       // 3
+    
+    [-.5, 0.0],     // 4
+    [0.0, -.5],     // 5
+    [ .5, 0.0],     // 6
+    [0.0,  .5],     // 7
 ];
 
 let drawColors = {
-    azul: [0, 0, 1],
+    azul: [0.015625, 0.3125, 0.56640625],
+    ciano: [0.26171875, 0.7421875, 0.84375],
     amarelo: [1, 0.87109375, 0],
     verde: [0, 0.609, 0.230],
     vermelho: [1, 0, 0],
@@ -31,6 +48,8 @@ utils.initShader({
 
                         uniform float resize;
                         uniform vec3 theta;
+                        uniform float translate;
+
                         uniform mat4 uViewMatrix;
                         uniform mat4 uProjectionMatrix;
 
@@ -56,7 +75,9 @@ utils.initShader({
                                             0.0, 0.0, 0.0, 1.0);
 
                             gl_PointSize = 10.0;
-                            gl_Position = rx * ry * rz * vec4(aPosition.x * resize, aPosition.y * resize, .5, 1.0);
+                            gl_Position = rz * vec4(aPosition, .5, 1.0);
+                            gl_Position.x = (gl_Position.x * resize) + translate;
+                            gl_Position.y = (gl_Position.y * resize) + translate;
                             vColor = vec4(aColor, 1.0);
                         }`,
 
@@ -71,46 +92,60 @@ utils.initShader({
                         }`
 });
 
-let rotate_x = 0, rotate_y = 0,rotate_z = 0;
+let theta = [0, 0, 0]
+let size = 1;
+let translate_x_y = 0;
+
 let speed = 30;
+
+utils.gl.lineWidth(5);
 
 render()
 
 function render() {
-    drawShape(
-        [0, 0, 0.3, 50],
-        "azul",
-        {
-            theta: [0, rotate_y, 0],
-            shape: "circle",
-            method: "TRIANGLE_FAN",
-            clear: false
-        }
-    )
+
+    theta[2] += rotationCtrl.currValue; 
+    size += scaleCtrl.currValue;
+    translate_x_y += translationCtrl.currValue;
 
     drawShape(
         [0, 1, 3, 2], 
-        "amarelo",
+        "ciano",
         {
-            theta: [0, 0, 45 - rotate_z],
-            resize: .7,
-            clear: false
+            theta: theta,
+            resize: size * .1,
+            translation: translate_x_y,
+            clear: false,
         }
     )
+    drawShape(
+        [4, 5, 6, 7],
+        "branco",
+        {
+            theta: theta,
+            resize: size * .9,
+            translation: translate_x_y,
+            clear: false,
+        }
+    )
+
+    
 
     drawShape(
         [0,1,3,2],
-        "verde",
+        "azul",
         {
-            theta: [rotate_x, 0, 0],
+            theta: theta,
+            resize: size,
+            translation: translate_x_y,
             clear: false
         }
     )
 
-    // window.setTimeout(() => render(), speed)
+    window.setTimeout(() => render(), speed)
 }
 
-function drawShape(vertices_info, cor, {shape = "square", theta = [0,0,0], resize = 1, method = "TRIANGLES", clear = true}) {
+function drawShape(vertices_info, cor, {shape = "square", theta = [0,0,0], resize = 1, translation = 0, method = "TRIANGLES", clear = true, reading = 2}) {
 
     switch (shape) {
         case "square":
@@ -121,15 +156,15 @@ function drawShape(vertices_info, cor, {shape = "square", theta = [0,0,0], resiz
             break;
     }
     
-
     utils.initBuffer({ vertices });
-    utils.linkBuffer({ variable: "aPosition", reading: 2 });
+    utils.linkBuffer({ variable: "aPosition", reading: reading });
 
     utils.initBuffer({ vertices: colors });
     utils.linkBuffer({ variable: "aColor", reading: 3 });
 
     utils.linkUniformVariable({shaderName: "resize", value: resize, kind: "1f"})
     utils.linkUniformVariable({shaderName: "theta", value: theta, kind: "3fv"})
+    utils.linkUniformVariable({shaderName: "translate", value: translation, kind: "1f"})
 
     utils.drawElements({ method: method, clear})
 }
@@ -152,17 +187,22 @@ function makeCircleVertices(centerX, centerY, radius, numVertices, color) {
     
     clearVerticesAndColors()
 
-    for (var i = 0; i < numVertices; i++) {
+    for (var i = 0; i < numVertices * 2; i++) {
         let angle = 2 * Math.PI * i / numVertices;
 
         let x = centerX + radius * Math.cos(angle);
         let y = centerY + radius * Math.sin(angle);
-
+        
+        vertices.push(centerX)
+        vertices.push(centerY)
+        
         vertices.push(x);
         vertices.push(y);
 
-        colors.push(...drawColors[color]); 
+        colors.push(...drawColors[color]);
+        console.log(i)
     }
+    console.log(vertices)
 }
 
 function clearVerticesAndColors () {
